@@ -1,0 +1,42 @@
+# Build output
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+
+# ASP.NET Core secrets
+**/appsettings.Development.json
+**/appsettings.Local.json
+secrets.json
+.env
+
+# Logs
+*.log
+logs/
+
+# Test results
+TestResults/
+*.trx
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# Rider
+.idea/
+
+# Others
+*.bak
+*.tmp
+*.old
+*.swp

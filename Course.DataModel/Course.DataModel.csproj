@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\Course.Common\Course.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.9.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.6">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.6">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+    <!-- <Compile Include="Dtos\RequestDTOs\RegisterRequestDto.cs" />
+    <Compile Include="Dtos\RequestDTOs\LoginRequestDto.cs" />
+    <Compile Include="Dtos\RequestDTOs\CourseRequestDto.cs" />
+    <Compile Include="Dtos\RequestDTOs\EnrollRequestDto.cs" />
+    <Compile Include="Dtos\ResponseDTOs\AuthResponseDto.cs" />
+    <Compile Include="Dtos\ResponseDTOs\CourseResponseDto.cs" />
+    <Compile Include="Dtos\ResponseDTOs\StudentInCourseDto.cs" />
+    <Compile Include="Dtos\ResponseDTOs\EnrollmentResponseDto.cs" />
+    <Compile Include="Dtos\ResponseDTOs\StudentProfileDto.cs" /> -->
+  </ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>
