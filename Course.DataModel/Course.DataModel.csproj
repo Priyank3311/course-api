@@ -14,15 +14,6 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
-    <!-- <Compile Include="Dtos\RequestDTOs\RegisterRequestDto.cs" />
-    <Compile Include="Dtos\RequestDTOs\LoginRequestDto.cs" />
-    <Compile Include="Dtos\RequestDTOs\CourseRequestDto.cs" />
-    <Compile Include="Dtos\RequestDTOs\EnrollRequestDto.cs" />
-    <Compile Include="Dtos\ResponseDTOs\AuthResponseDto.cs" />
-    <Compile Include="Dtos\ResponseDTOs\CourseResponseDto.cs" />
-    <Compile Include="Dtos\ResponseDTOs\StudentInCourseDto.cs" />
-    <Compile Include="Dtos\ResponseDTOs\EnrollmentResponseDto.cs" />
-    <Compile Include="Dtos\ResponseDTOs\StudentProfileDto.cs" /> -->
   </ItemGroup>
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>

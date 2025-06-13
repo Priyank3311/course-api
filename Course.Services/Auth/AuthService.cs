@@ -47,6 +47,26 @@ public class AuthService : IAuthService
 
     }
 
+    public async Task<AuthResponseDto?> LoginAsync(LoginRequestDto dto)
+    {
+        if (dto == null)
+        {
+            throw new ArgumentNullException(nameof(dto), "LoginRequestDto cannot be null");
+        }
+        if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Password))
+        {
+            throw new ArgumentException("Username and Password cannot be empty");
+        }
+
+        var user = (await unitOfWork.User.FindAsync(x => x.Username == dto.Username)).FirstOrDefault();
+        if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Passwordhash))
+        {
+            throw new UnauthorizedAccessException("Invalid username or password");
+        }
+
+        return GenerateToken(user);
+    } 
+
     private AuthResponseDto GenerateToken(User user)
     {
         var claims = new[]

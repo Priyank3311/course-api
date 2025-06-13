@@ -4,6 +4,7 @@ using Course.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +12,35 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(option =>
+{
+    option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Description = "JWT Authorization header using the Bearer Scheme. \r\n\r\n " +
+        "Enter 'Bearer' [space] and then your token in the text input below. \r\n\r\n " +
+        "Example : \"Bearer 12345qwerty\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Scheme = "Bearer"
+    });
+    option.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    {
+        {
+            new OpenApiSecurityScheme
+        {
+            Reference=new OpenApiReference
+            {
+                Type=ReferenceType.SecurityScheme,
+                Id="Bearer"
+            },
+            Scheme="auth1",
+            Name="Bearer",
+            In=ParameterLocation.Header,
+        },
+        new List<string>()
+        }
+    });
+});
 
 builder.Services.AddCors(options =>
 {

@@ -9,10 +9,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.6.2" />
-    <!-- <Compile Include="MappingConfig.cs" />
-    <Compile Include="Auth\AuthService.cs" />
-    <Compile Include="Auth\IAuthService.cs" />
-    <Compile Include="IServiceCollectionExtension.cs" /> -->
   </ItemGroup>
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>

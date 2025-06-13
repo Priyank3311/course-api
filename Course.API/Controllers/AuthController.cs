@@ -1,4 +1,5 @@
 using Course.DataModel.Dtos.RequestDTOs;
+using Course.DataModel.Dtos.ResponseDTOs;
 using Course.Services.Auth;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,19 +18,80 @@ public class AuthController : ControllerBase
 
     [HttpPost]
     [Route("Register")]
-    public async Task<IActionResult> Register([FromBody]RegisterRequestDto dto)
+    public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto)
     {
+        var response = new CommonResponse<AuthResponseDto>();
         try
         {
             var result = await _authService.RegisterAsync(dto);
             if (result == null)
                 return BadRequest("Username already exists.");
-            return Ok(result);
+            Response.Cookies.Append("jwtToken", result.Token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddHours(2)
+            });
+
+            response.data = result;
+            response.success_message = "Registered successfully";
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            response.error_message = ex.Message;
+            return BadRequest(response);
+        }
+        catch (ArgumentException ex)
+        {
+            response.error_message = ex.Message;
+            return BadRequest(response);
         }
         catch (Exception ex)
         {
-            return BadRequest($"An error occurred: {ex.Message}");
+            response.error_message = $"An error occurred: {ex.Message}";
+            return StatusCode(500, response);
         }
 
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
+    {
+        var response = new CommonResponse<AuthResponseDto>();
+
+        try
+        {
+            var result = await _authService.LoginAsync(dto);
+            if (result == null)
+                return Unauthorized("Invalid username or password.");
+            Response.Cookies.Append("jwtToken", result.Token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddHours(2)
+            });
+
+            response.data = result;
+            response.success_message = "Login successful";
+            return Ok(response);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            response.error_message = ex.Message;
+            return Unauthorized(response);
+        }
+        catch (ArgumentException ex)
+        {
+            response.error_message = ex.Message;
+            return BadRequest(response);
+        }
+        catch (Exception ex)
+        {
+            response.error_message = $"An error occurred: {ex.Message}";
+            return StatusCode(500, response);
+        }
     }
 }
