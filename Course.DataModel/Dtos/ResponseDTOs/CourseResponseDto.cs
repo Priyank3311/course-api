@@ -7,4 +7,6 @@ public class CourseResponseDto
     public string Content { get; set; } = null!;
     public int Credits { get; set; }
     public string Department { get; set; } = null!;
+    public long TotalCount { get; set; }
+
 }

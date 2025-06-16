@@ -36,8 +36,18 @@ public class CourseService : ICourseService
                     (string.IsNullOrWhiteSpace(dept) || c.Department.ToLower().Trim().Contains(dept.ToLower().Trim()));
             }
 
-            var courses = await unitOfWork.Course.GetDataAsync(filter, null, page, size);
-            response.data = mapper.Map<List<CourseResponseDto>>(courses);
+            var courses = await unitOfWork.Course.GetDataAsync(filter);
+            var TotalCount = courses.Count;
+            var pagedCourses = courses
+                                    .Skip((page - 1) * size)
+                                    .Take(size)
+                                    .ToList();
+            var dtos = mapper.Map<List<CourseResponseDto>>(pagedCourses);
+            foreach (var dto in dtos)
+            {
+                dto.TotalCount = TotalCount;
+            }
+            response.data = dtos;
             response.success_message = "Course list fetched successfully";
         }
         catch (Exception ex)
@@ -142,4 +152,27 @@ public class CourseService : ICourseService
 
         return response;
     }
+    public async Task<CommonResponse<CourseResponseDto>> GetByIdAsync(int id)
+    {
+        var response = new CommonResponse<CourseResponseDto>();
+        try
+        {
+            var course = await unitOfWork.Course.GetByIdAsync(id);
+            if (course == null)
+            {
+                response.data = null;
+                response.error_message = $"Course with ID {id} not found.";
+                return response;
+            }
+
+            response.data = mapper.Map<CourseResponseDto>(course);
+            response.success_message = "Course fetched successfully.";
+        }
+        catch (Exception ex)
+        {
+            response.error_message = $"Failed to fetch course: {ex.Message}";
+        }
+        return response;
+    }
+
 }

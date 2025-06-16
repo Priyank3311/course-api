@@ -10,5 +10,6 @@ public interface ICourseService
     Task<CommonResponse<bool>> UpdateAsync(int id, CourseRequestDto dto);
     Task<CommonResponse<bool>> DeleteAsync(int id);
     Task<CommonResponse<List<StudentInCourseDto>>> GetEnrolledStudentsAsync(int courseId);
+    Task<CommonResponse<CourseResponseDto>> GetByIdAsync(int id);
     
 }

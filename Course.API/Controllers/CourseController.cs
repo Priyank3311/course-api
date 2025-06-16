@@ -62,6 +62,23 @@ public class CourseController : ControllerBase
             return BadRequest($"An error occurred: {ex.Message}");
         }
     }
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetByIdAsync(int id)
+    {
+        try
+        {
+            var response = await _courseService.GetByIdAsync(id);
+
+            if (!string.IsNullOrEmpty(response.error_message))
+                return NotFound(response);
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"An error occurred: {ex.Message}");
+        }
+    }
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAsync(int id)
     {
