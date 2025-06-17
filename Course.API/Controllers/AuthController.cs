@@ -26,7 +26,7 @@ public class AuthController : ControllerBase
             var result = await _authService.RegisterAsync(dto);
             if (result == null)
                 return BadRequest("Username already exists.");
-            Response.Cookies.Append("jwtToken", result.Token, new CookieOptions
+            Response.Cookies.Append("jwtToken", result.RefreshToken, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
@@ -66,7 +66,7 @@ public class AuthController : ControllerBase
             var result = await _authService.LoginAsync(dto);
             if (result == null)
                 return Unauthorized("Invalid username or password.");
-            Response.Cookies.Append("jwtToken", result.Token, new CookieOptions
+            Response.Cookies.Append("jwtToken", result.AccessToken, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
@@ -94,4 +94,15 @@ public class AuthController : ControllerBase
             return StatusCode(500, response);
         }
     }
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto dto)
+    {
+        var result = await _authService.RefreshTokenAsync(dto);
+
+        if (!string.IsNullOrEmpty(result.error_message))
+            return Unauthorized(result);
+
+        return Ok(result);
+    }
+
 }
