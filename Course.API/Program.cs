@@ -1,4 +1,5 @@
 using System.Text;
+using Course.Common;
 using Course.DataModel.Entities;
 using Course.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(option =>
 {
@@ -45,7 +47,12 @@ builder.Services.AddSwaggerGen(option =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+        policy
+            .WithOrigins("http://localhost:4200") 
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()                  
+    );
 });
 
 builder.Services.AddDbContext<StudentCourseDbContext>(options =>
@@ -90,11 +97,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.UseHttpsRedirection();
+app.MapHub<CourseHub>("/hubs/course");
 
 
 app.Run();

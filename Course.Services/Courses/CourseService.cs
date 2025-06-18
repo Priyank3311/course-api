@@ -1,9 +1,11 @@
 using System.Linq.Expressions;
 using AutoMapper;
+using Course.Common;
 using Course.DataModel.Dtos.RequestDTOs;
 using Course.DataModel.Dtos.ResponseDTOs;
 using Course.DataModel.Entities;
 using Course.Repositories.UnitOfWork;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -14,12 +16,13 @@ public class CourseService : ICourseService
     private readonly IMapper mapper;
 
     private readonly IUnitOfWork unitOfWork;
+    private readonly IHubContext<CourseHub> _hubContext;
 
-
-    public CourseService(IMapper _mapper, IUnitOfWork _unitOfWork)
+    public CourseService(IMapper _mapper, IUnitOfWork _unitOfWork, IHubContext<CourseHub> hubContext)
     {
         mapper = _mapper;
         unitOfWork = _unitOfWork;
+        _hubContext = hubContext;
     }
 
     public async Task<CommonResponse<List<CourseResponseDto>>> GetPagedAsync(string? search, string? dept, int page, int size)
@@ -70,6 +73,7 @@ public class CourseService : ICourseService
 
             response.data = mapper.Map<CourseResponseDto>(course);
             response.success_message = "Course created successfully";
+            await _hubContext.Clients.All.SendAsync("NewCourseAdded", response.data);
         }
         catch (Exception ex)
         {
@@ -95,6 +99,8 @@ public class CourseService : ICourseService
 
             response.data = true;
             response.success_message = "Course updated successfully";
+            // var updatedCourse = mapper.Map<CourseResponseDto>(course);
+            // await _hubContext.Clients.All.SendAsync("CourseUpdated", updatedCourse);
         }
         catch (Exception ex)
         {
@@ -117,6 +123,7 @@ public class CourseService : ICourseService
 
             response.data = deleted;
             response.success_message = deleted ? "Course deleted successfully" : "Course cannot be deleted";
+            // await _hubContext.Clients.All.SendAsync("CourseDeleted", id);
         }
         catch (Exception ex)
         {

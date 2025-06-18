@@ -135,7 +135,7 @@ public class AuthService : IAuthService
             }
 
             // Generate new access token only (15 minutes)
-            var newAccessToken = GenerateJwtToken(user, TimeSpan.FromMinutes(15));
+            var newAccessToken = GenerateJwtToken(user, DateTime.UtcNow.AddMinutes(30));
 
             response.data = newAccessToken;
             response.success_message = "Access token refreshed successfully.";
@@ -152,7 +152,7 @@ public class AuthService : IAuthService
         return response;
     }
 
-    private string GenerateJwtToken(User user, TimeSpan expiresIn)
+    private string GenerateJwtToken(User user, DateTime expiresIn)
     {
         var claims = new[]
         {
@@ -163,12 +163,11 @@ public class AuthService : IAuthService
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
         var token = new JwtSecurityToken(
             issuer: config["Jwt:Issuer"],
             audience: config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.Add(expiresIn),
+            expires: expiresIn,
             signingCredentials: creds
         );
 
@@ -180,8 +179,8 @@ public class AuthService : IAuthService
         {
             Username = user.Username,
             Role = user.Role,
-            AccessToken = GenerateJwtToken(user, TimeSpan.FromMinutes(15)),
-            RefreshToken = GenerateJwtToken(user, TimeSpan.FromDays(7))
+            AccessToken = GenerateJwtToken(user, DateTime.UtcNow.AddMinutes(30)),
+            RefreshToken = GenerateJwtToken(user, DateTime.UtcNow.AddHours(2))
         };
     }
 

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Course.API.Controllers;
 
+
 [ApiController]
 [Route("api/Auth/")]
 public class AuthController : ControllerBase

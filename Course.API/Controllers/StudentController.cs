@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using Course.DataModel.Dtos.RequestDTOs;
 using Course.Services.Student;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Course.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class StudentController : ControllerBase
