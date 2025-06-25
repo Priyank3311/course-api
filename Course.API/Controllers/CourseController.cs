@@ -16,7 +16,7 @@ public class CourseController : ControllerBase
         _courseService = courseService;
     }
 
-    [HttpGet("api/Course")]
+    [HttpGet("Course")]
     public async Task<IActionResult> GetPagedAsync(string? search, string? dept, int page = 1, int size = 10)
     {
         try
@@ -31,7 +31,8 @@ public class CourseController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateAsync([FromBody] CourseRequestDto dto)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> CreateAsync([FromForm] CourseRequestDto dto)
     {
         try
         {
@@ -45,7 +46,8 @@ public class CourseController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateAsync(int id, [FromBody] CourseRequestDto dto)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UpdateAsync(int id, [FromForm] CourseRequestDto dto)
     {
         try
         {

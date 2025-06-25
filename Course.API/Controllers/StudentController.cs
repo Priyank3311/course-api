@@ -17,7 +17,7 @@ public class StudentController : ControllerBase
         _studentService = studentService;
     }
 
-    private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private int GetUserId() => int.Parse(User.FindFirst("user_id")?.Value!);
 
     [HttpGet("available-courses")]
     public async Task<IActionResult> GetAvailableCourses()

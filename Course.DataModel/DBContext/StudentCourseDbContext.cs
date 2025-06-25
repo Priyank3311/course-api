@@ -13,6 +13,8 @@ public partial class StudentCourseDbContext : DbContext
 
     public virtual DbSet<Course> Courses { get; set; }
 
+    public virtual DbSet<Devicetoken> Devicetokens { get; set; }
+
     public virtual DbSet<Enrollment> Enrollments { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
@@ -34,6 +36,27 @@ public partial class StudentCourseDbContext : DbContext
             entity.Property(e => e.Department)
                 .HasMaxLength(100)
                 .HasColumnName("department");
+            entity.Property(e => e.ImagePath).HasMaxLength(255);
+        });
+
+        modelBuilder.Entity<Devicetoken>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("devicetokens_pkey");
+
+            entity.ToTable("devicetokens");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Createdat)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("createdat");
+            entity.Property(e => e.Token).HasColumnName("token");
+            entity.Property(e => e.Userid).HasColumnName("userid");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Devicetokens)
+                .HasForeignKey(d => d.Userid)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("fk_devicetokens_userid");
         });
 
         modelBuilder.Entity<Enrollment>(entity =>

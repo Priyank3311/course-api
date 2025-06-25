@@ -5,6 +5,7 @@ using Course.DataModel.Dtos.RequestDTOs;
 using Course.DataModel.Dtos.ResponseDTOs;
 using Course.DataModel.Entities;
 using Course.Repositories.UnitOfWork;
+using Course.Services.Common;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -17,12 +18,14 @@ public class CourseService : ICourseService
 
     private readonly IUnitOfWork unitOfWork;
     private readonly IHubContext<CourseHub> _hubContext;
+    private readonly ICommonService _commonService;
 
-    public CourseService(IMapper _mapper, IUnitOfWork _unitOfWork, IHubContext<CourseHub> hubContext)
+    public CourseService(IMapper _mapper, IUnitOfWork _unitOfWork, IHubContext<CourseHub> hubContext, ICommonService commonService)
     {
         mapper = _mapper;
         unitOfWork = _unitOfWork;
         _hubContext = hubContext;
+        _commonService = commonService;
     }
 
     public async Task<CommonResponse<List<CourseResponseDto>>> GetPagedAsync(string? search, string? dept, int page, int size)
@@ -32,11 +35,17 @@ public class CourseService : ICourseService
         {
             Expression<Func<DataModel.Entities.Course, bool>>? filter = null;
 
-            if (!string.IsNullOrWhiteSpace(search) || !string.IsNullOrWhiteSpace(dept))
+            // if (!string.IsNullOrWhiteSpace(search) || !string.IsNullOrWhiteSpace(dept))
+            // {
+            //     filter = c =>
+            //         (string.IsNullOrWhiteSpace(search) || c.Coursename.ToLower().Trim().Contains(search.ToLower().Trim())) &&
+            //         (string.IsNullOrWhiteSpace(dept) || c.Department.ToLower().Trim().Contains(dept.ToLower().Trim()));
+            // }
+            if (!string.IsNullOrWhiteSpace(search))
             {
                 filter = c =>
-                    (string.IsNullOrWhiteSpace(search) || c.Coursename.ToLower().Trim().Contains(search.ToLower().Trim())) &&
-                    (string.IsNullOrWhiteSpace(dept) || c.Department.ToLower().Trim().Contains(dept.ToLower().Trim()));
+                    c.Coursename.ToLower().Trim().Contains(search.ToLower().Trim()) ||
+                    c.Department.ToLower().Trim().Contains(search.ToLower().Trim());
             }
 
             var courses = await unitOfWork.Course.GetDataAsync(filter);
@@ -69,6 +78,10 @@ public class CourseService : ICourseService
                 throw new ArgumentNullException(nameof(dto), "CourseRequestDto cannot be null");
 
             var course = mapper.Map<DataModel.Entities.Course>(dto);
+            if (dto.CourseImage != null && dto.CourseImage.Length > 0)
+            {
+               course.ImagePath = await _commonService.UploadImageAsync(dto.CourseImage, "course-images");
+            }
             await unitOfWork.Course.AddAsync(course);
 
             response.data = mapper.Map<CourseResponseDto>(course);
@@ -95,6 +108,12 @@ public class CourseService : ICourseService
                 throw new KeyNotFoundException($"Course with ID {id} not found");
 
             mapper.Map(dto, course);
+            if (dto.CourseImage != null && dto.CourseImage.Length > 0)
+            {
+        
+
+               course.ImagePath = _commonService.UploadImageAsync(dto.CourseImage, "course-images").Result;
+            }
             await unitOfWork.Course.UpdateAsync(course);
 
             response.data = true;

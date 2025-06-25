@@ -158,8 +158,8 @@ public class AuthService : IAuthService
         {
         new Claim(ClaimTypes.Name, user.Username),
         new Claim(ClaimTypes.Role, user.Role),
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-    };
+        new Claim("user_id", user.Id.ToString())
+        };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -182,6 +182,30 @@ public class AuthService : IAuthService
             AccessToken = GenerateJwtToken(user, DateTime.UtcNow.AddMinutes(30)),
             RefreshToken = GenerateJwtToken(user, DateTime.UtcNow.AddHours(2))
         };
+    }
+
+    public async Task<CommonResponse<string>> SaveDeviceToken(DeviceTokenDto dto)
+    {
+        var response = new CommonResponse<string>();
+        try
+        {
+            var token = new Devicetoken
+            {
+                Userid = dto.UserId,
+                Token = dto.Token
+            };
+
+            await unitOfWork.DeviceToken.AddAsync(token);
+
+            response.data = "Device token saved successfully.";
+            response.success_message = "Device token saved successfully.";
+        }
+        catch (Exception ex)
+        {
+            response.error_message = $"An error occurred while saving device token: {ex.Message}";
+        }
+
+        return response;
     }
 
 }

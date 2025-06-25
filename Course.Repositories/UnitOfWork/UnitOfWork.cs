@@ -13,10 +13,11 @@ public class UnitOfWork : IUnitOfWork
         Course = new BaseRepository<Course.DataModel.Entities.Course>(context);
         User = new BaseRepository<User>(context);
         Enrollment = new BaseRepository<Enrollment>(context);
-
+        DeviceToken = new BaseRepository<Devicetoken>(context);
     }
 
     public IBaseRepository<Course.DataModel.Entities.Course> Course { get; private set; }
     public IBaseRepository<User> User { get; private set; }
     public IBaseRepository<Enrollment> Enrollment { get; private set; }
+    public IBaseRepository<Devicetoken> DeviceToken { get; private set;}
 }

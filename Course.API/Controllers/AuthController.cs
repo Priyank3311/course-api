@@ -106,4 +106,11 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("device-token")]
+    public async Task<IActionResult> SaveDeviceToken([FromBody] DeviceTokenDto dto)
+    {
+        var response = await _authService.SaveDeviceToken(dto);
+        return Ok(response);
+    }
+
 }

@@ -8,4 +8,5 @@ public interface IUnitOfWork
     public IBaseRepository<Course.DataModel.Entities.Course> Course { get; }
     public IBaseRepository<User> User { get; }
     public IBaseRepository<Enrollment> Enrollment { get; }
+    public IBaseRepository<Devicetoken> DeviceToken { get; }
 }

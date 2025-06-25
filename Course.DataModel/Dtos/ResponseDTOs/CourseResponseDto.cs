@@ -8,5 +8,5 @@ public class CourseResponseDto
     public int Credits { get; set; }
     public string Department { get; set; } = null!;
     public long TotalCount { get; set; }
-
+    public string? ImagePath { get; set; }
 }

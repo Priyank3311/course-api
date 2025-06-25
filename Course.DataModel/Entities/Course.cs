@@ -15,5 +15,7 @@ public partial class Course
 
     public string Department { get; set; } = null!;
 
+    public string? ImagePath { get; set; }
+
     public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 }

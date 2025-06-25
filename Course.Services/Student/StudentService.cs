@@ -2,6 +2,8 @@ using AutoMapper;
 using Course.DataModel.Dtos.ResponseDTOs;
 using Course.DataModel.Entities;
 using Course.Repositories.UnitOfWork;
+using Course.Services.Common;
+using FirebaseAdmin.Messaging;
 using Microsoft.EntityFrameworkCore;
 
 namespace Course.Services.Student;
@@ -11,12 +13,15 @@ public class StudentService : IStudentService
     private readonly IMapper mapper;
 
     private readonly IUnitOfWork unitOfWork;
+    private readonly IFirebaseNotificationService firebaseNotificationService;
 
 
-    public StudentService(IMapper _mapper, IUnitOfWork _unitOfWork)
+
+    public StudentService(IMapper _mapper, IUnitOfWork _unitOfWork, IFirebaseNotificationService _firebaseNotificationService)
     {
         mapper = _mapper;
         unitOfWork = _unitOfWork;
+        firebaseNotificationService = _firebaseNotificationService;
     }
     public async Task<CommonResponse<List<CourseResponseDto>>> GetAllCoursesAsync()
     {
@@ -77,6 +82,34 @@ public class StudentService : IStudentService
                 Courseid = courseId,
                 Iscompleted = false
             });
+
+            User student = await unitOfWork.User.GetByIdAsync(studentId);
+            var course = await unitOfWork.Course.GetByIdAsync(courseId);
+            var studentName = student?.Username ?? "Unknown Student";
+            var courseName = course?.Coursename ?? "Unknown Course";
+
+            var adminTokens = (await unitOfWork.DeviceToken
+                                .FindAsync(a => a.User!.Role == "Admin"))
+                                .GroupBy(t => t.Token)
+                                .Select(g => g.First())
+                                .ToList();
+
+
+            foreach (var token in adminTokens)
+            {
+                try
+                {
+                    Console.WriteLine($"📤 Sending notification to token: {token.Token}");
+                    await firebaseNotificationService.SendToTokenAsync(token.Token,
+                        "New Enrollment",
+                        $"{studentName} has enrolled in course name: {courseName}");
+                }
+                catch (FirebaseMessagingException ex) when (ex.MessagingErrorCode == MessagingErrorCode.Unregistered)
+                {
+                    Console.WriteLine($" Token unregistered, removing from DB: {token.Token}");
+                    await unitOfWork.DeviceToken.DeleteAsync(token);
+                }
+            }
 
             response.data = true;
             response.success_message = "Enrolled successfully";

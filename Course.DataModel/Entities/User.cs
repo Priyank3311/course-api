@@ -13,5 +13,7 @@ public partial class User
 
     public string Role { get; set; } = null!;
 
+    public virtual ICollection<Devicetoken> Devicetokens { get; set; } = new List<Devicetoken>();
+
     public virtual ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 }

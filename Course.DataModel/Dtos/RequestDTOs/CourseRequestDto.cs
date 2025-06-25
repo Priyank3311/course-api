@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Http;
 
 namespace Course.DataModel.Dtos.RequestDTOs;
 
@@ -8,6 +9,7 @@ public class CourseRequestDto
     public string Content { get; set; } = null!;
     public int Credits { get; set; }
     public string Department { get; set; } = null!;
+    public IFormFile? CourseImage { get; set; }
 }
 public class CourseRequestValidation : AbstractValidator<CourseRequestDto>
 {

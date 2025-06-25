@@ -1,6 +1,7 @@
 using Course.DataModel.Dtos.RequestDTOs;
 using Course.Repositories.UnitOfWork;
 using Course.Services.Auth;
+using Course.Services.Common;
 using Course.Services.Courses;
 using Course.Services.Student;
 using FluentValidation;
@@ -16,6 +17,8 @@ public static class IServiceCollectionExtension
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICourseService, CourseService>();
         services.AddScoped<IStudentService, StudentService>();
+        services.AddScoped<ICommonService, CommonService>();
+        services.AddSingleton<IFirebaseNotificationService, FirebaseNotificationService>();
         services.RegisterRequestValidatorDependencies();
         return services;
     }
