@@ -10,11 +10,11 @@ public class RegisterRequestDto
 }
 
 public class RegisterRequestValidation : AbstractValidator<RegisterRequestDto>
+{
+    public RegisterRequestValidation()
     {
-        public RegisterRequestValidation()
-        {
-            RuleFor(x => x.Username).NotEmpty();
-            RuleFor(x => x.Password).NotEmpty();
-            RuleFor(x => x.Role).NotEmpty();
-        }
+        RuleFor(x => x.Username).NotEmpty();
+        RuleFor(x => x.Password).NotEmpty();
+        RuleFor(x => x.Role).NotEmpty();
     }
+}

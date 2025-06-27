@@ -8,23 +8,16 @@ namespace Course.API.Controllers;
 
 [ApiController]
 [Route("api/Auth/")]
-public class AuthController : ControllerBase
+public class AuthController(IAuthService _authService) : ControllerBase
 {
-    private readonly IAuthService _authService;
-
-    public AuthController(IAuthService authService)
-    {
-        _authService = authService;
-    }
-
     [HttpPost]
     [Route("Register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto)
     {
-        var response = new CommonResponse<AuthResponseDto>();
+        CommonResponse<AuthResponseDto> response = new();
         try
         {
-            var result = await _authService.RegisterAsync(dto);
+            AuthResponseDto? result = await _authService.RegisterAsync(dto);
             if (result == null)
                 return BadRequest("Username already exists.");
             Response.Cookies.Append("jwtToken", result.RefreshToken, new CookieOptions
@@ -44,6 +37,11 @@ public class AuthController : ControllerBase
             response.error_message = ex.Message;
             return BadRequest(response);
         }
+        catch(ArgumentNullException ex)
+        {
+            response.error_message = ex.Message;
+            return BadRequest(response);
+        }
         catch (ArgumentException ex)
         {
             response.error_message = ex.Message;
@@ -51,7 +49,8 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            response.error_message = $"An error occurred: {ex.Message}";
+            Console.WriteLine(ex.Message);
+            response.error_message = $"Internal server error";
             return StatusCode(500, response);
         }
 
@@ -60,11 +59,11 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
     {
-        var response = new CommonResponse<AuthResponseDto>();
+        CommonResponse<AuthResponseDto> response = new();
 
         try
         {
-            var result = await _authService.LoginAsync(dto);
+            AuthResponseDto? result = await _authService.LoginAsync(dto);
             if (result == null)
                 return Unauthorized("Invalid username or password.");
             Response.Cookies.Append("jwtToken", result.AccessToken, new CookieOptions
@@ -91,14 +90,15 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            response.error_message = $"An error occurred: {ex.Message}";
+            Console.WriteLine(ex.Message);
+            response.error_message = $"Internal server error";
             return StatusCode(500, response);
         }
     }
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto dto)
     {
-        var result = await _authService.RefreshTokenAsync(dto);
+        CommonResponse<string> result = await _authService.RefreshTokenAsync(dto);
 
         if (!string.IsNullOrEmpty(result.error_message))
             return Unauthorized(result);
@@ -109,7 +109,7 @@ public class AuthController : ControllerBase
     [HttpPost("device-token")]
     public async Task<IActionResult> SaveDeviceToken([FromBody] DeviceTokenDto dto)
     {
-        var response = await _authService.SaveDeviceToken(dto);
+        CommonResponse<string> response = await _authService.SaveDeviceToken(dto);
         return Ok(response);
     }
 

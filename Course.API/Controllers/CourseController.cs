@@ -1,4 +1,5 @@
 using Course.DataModel.Dtos.RequestDTOs;
+using Course.DataModel.Dtos.ResponseDTOs;
 using Course.Services.Courses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,25 +9,20 @@ namespace Course.API.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class CourseController : ControllerBase
+public class CourseController(ICourseService _courseService) : ControllerBase
 {
-    private readonly ICourseService _courseService;
-    public CourseController(ICourseService courseService)
-    {
-        _courseService = courseService;
-    }
-
     [HttpGet("Course")]
     public async Task<IActionResult> GetPagedAsync(string? search, string? dept, int page = 1, int size = 10)
     {
         try
         {
-            var courses = await _courseService.GetPagedAsync(search, dept, page, size);
+            CommonResponse<List<CourseResponseDto>> courses = await _courseService.GetPagedAsync(search, dept, page, size);
             return Ok(courses);
         }
         catch (Exception ex)
         {
-            return BadRequest($"An error occurred: {ex.Message}");
+            Console.WriteLine(ex.Message);
+            return BadRequest($"Internal server error");
         }
     }
 
@@ -36,12 +32,13 @@ public class CourseController : ControllerBase
     {
         try
         {
-            var course = await _courseService.CreateAsync(dto);
+            CommonResponse<CourseResponseDto> course = await _courseService.CreateAsync(dto);
             return Ok(course);
         }
         catch (Exception ex)
         {
-            return BadRequest($"An error occurred: {ex.Message}");
+            Console.WriteLine(ex.Message);
+            return BadRequest($"Internal server error");
         }
     }
 
@@ -51,7 +48,7 @@ public class CourseController : ControllerBase
     {
         try
         {
-            var response = await _courseService.UpdateAsync(id, dto);
+            CommonResponse<bool> response = await _courseService.UpdateAsync(id, dto);
 
             if (!string.IsNullOrEmpty(response.error_message))
                 return BadRequest(response);
@@ -63,7 +60,8 @@ public class CourseController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest($"An error occurred: {ex.Message}");
+            Console.WriteLine(ex.Message);
+            return BadRequest($"Internal server error");
         }
     }
     [HttpGet("{id}")]
@@ -71,7 +69,7 @@ public class CourseController : ControllerBase
     {
         try
         {
-            var response = await _courseService.GetByIdAsync(id);
+            CommonResponse<CourseResponseDto> response = await _courseService.GetByIdAsync(id);
 
             if (!string.IsNullOrEmpty(response.error_message))
                 return NotFound(response);
@@ -80,7 +78,8 @@ public class CourseController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest($"An error occurred: {ex.Message}");
+            Console.WriteLine(ex.Message);
+            return BadRequest($"Internal server error");
         }
     }
     [HttpDelete("{id}")]
@@ -88,7 +87,7 @@ public class CourseController : ControllerBase
     {
         try
         {
-            var response = await _courseService.DeleteAsync(id);
+            CommonResponse<bool> response = await _courseService.DeleteAsync(id);
 
             if (!string.IsNullOrEmpty(response.error_message))
                 return BadRequest(response);
@@ -100,7 +99,8 @@ public class CourseController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest($"An error occurred: {ex.Message}");
+            Console.WriteLine(ex.Message);
+            return BadRequest($"Internal server error");
         }
     }
     [HttpGet("{courseId}/students")]
@@ -108,12 +108,13 @@ public class CourseController : ControllerBase
     {
         try
         {
-            var students = await _courseService.GetEnrolledStudentsAsync(courseId);
+            CommonResponse<List<StudentInCourseDto>> students = await _courseService.GetEnrolledStudentsAsync(courseId);
             return Ok(students);
         }
         catch (Exception ex)
         {
-            return BadRequest($"An error occurred: {ex.Message}");
+            Console.WriteLine(ex.Message);
+            return BadRequest($"Internal server error");
         }
     }
 }

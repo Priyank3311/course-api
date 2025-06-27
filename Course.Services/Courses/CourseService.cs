@@ -12,25 +12,12 @@ using Microsoft.Extensions.Configuration;
 
 namespace Course.Services.Courses;
 
-public class CourseService : ICourseService
+public class CourseService(IMapper mapper, IUnitOfWork unitOfWork, IHubContext<CourseHub> _hubContext, ICommonService _commonService) : ICourseService
 {
-    private readonly IMapper mapper;
-
-    private readonly IUnitOfWork unitOfWork;
-    private readonly IHubContext<CourseHub> _hubContext;
-    private readonly ICommonService _commonService;
-
-    public CourseService(IMapper _mapper, IUnitOfWork _unitOfWork, IHubContext<CourseHub> hubContext, ICommonService commonService)
-    {
-        mapper = _mapper;
-        unitOfWork = _unitOfWork;
-        _hubContext = hubContext;
-        _commonService = commonService;
-    }
 
     public async Task<CommonResponse<List<CourseResponseDto>>> GetPagedAsync(string? search, string? dept, int page, int size)
     {
-        var response = new CommonResponse<List<CourseResponseDto>>();
+        CommonResponse<List<CourseResponseDto>> response = new();
         try
         {
             Expression<Func<DataModel.Entities.Course, bool>>? filter = null;
@@ -48,13 +35,13 @@ public class CourseService : ICourseService
                     c.Department.ToLower().Trim().Contains(search.ToLower().Trim());
             }
 
-            var courses = await unitOfWork.Course.GetDataAsync(filter);
-            var TotalCount = courses.Count;
+            IEnumerable<DataModel.Entities.Course> courses = await unitOfWork.Course.GetDataAsync(filter);
+            var TotalCount = courses.Count();
             var pagedCourses = courses
                                     .Skip((page - 1) * size)
                                     .Take(size)
                                     .ToList();
-            var dtos = mapper.Map<List<CourseResponseDto>>(pagedCourses);
+            List<CourseResponseDto> dtos = mapper.Map<List<CourseResponseDto>>(pagedCourses);
             foreach (var dto in dtos)
             {
                 dto.TotalCount = TotalCount;
@@ -71,16 +58,16 @@ public class CourseService : ICourseService
 
     public async Task<CommonResponse<CourseResponseDto>> CreateAsync(CourseRequestDto dto)
     {
-        var response = new CommonResponse<CourseResponseDto>();
+        CommonResponse<CourseResponseDto> response = new();
         try
         {
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto), "CourseRequestDto cannot be null");
 
-            var course = mapper.Map<DataModel.Entities.Course>(dto);
+            DataModel.Entities.Course course = mapper.Map<DataModel.Entities.Course>(dto);
             if (dto.CourseImage != null && dto.CourseImage.Length > 0)
             {
-               course.ImagePath = await _commonService.UploadImageAsync(dto.CourseImage, "course-images");
+                course.ImagePath = await _commonService.UploadImageAsync(dto.CourseImage, "course-images");
             }
             await unitOfWork.Course.AddAsync(course);
 
@@ -97,7 +84,7 @@ public class CourseService : ICourseService
 
     public async Task<CommonResponse<bool>> UpdateAsync(int id, CourseRequestDto dto)
     {
-        var response = new CommonResponse<bool>();
+        CommonResponse<bool> response = new();
         try
         {
             if (dto == null)
@@ -110,9 +97,9 @@ public class CourseService : ICourseService
             mapper.Map(dto, course);
             if (dto.CourseImage != null && dto.CourseImage.Length > 0)
             {
-        
 
-               course.ImagePath = _commonService.UploadImageAsync(dto.CourseImage, "course-images").Result;
+
+                course.ImagePath = _commonService.UploadImageAsync(dto.CourseImage, "course-images").Result;
             }
             await unitOfWork.Course.UpdateAsync(course);
 
@@ -123,18 +110,19 @@ public class CourseService : ICourseService
         }
         catch (Exception ex)
         {
+            Console.WriteLine(ex.Message);
             response.data = false;
-            response.error_message = $"Failed to update course: {ex.Message}";
+            response.error_message = $"Internal server error";
         }
         return response;
     }
 
     public async Task<CommonResponse<bool>> DeleteAsync(int id)
     {
-        var response = new CommonResponse<bool>();
+        CommonResponse<bool> response = new();
         try
         {
-            var deleted = await unitOfWork.Course.DeleteIfAsync(
+            bool deleted = await unitOfWork.Course.DeleteIfAsync(
                 c => c.Id == id,
                 include: q => q.Include(c => c.Enrollments),
                 condition: c => !c.Enrollments!.Any()
@@ -146,18 +134,19 @@ public class CourseService : ICourseService
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Error deleting course: {ex.Message}");
             response.data = false;
-            response.error_message = $"Failed to delete course: {ex.Message}";
+            response.error_message = $"Failed to delete course";
         }
         return response;
     }
 
     public async Task<CommonResponse<List<StudentInCourseDto>>> GetEnrolledStudentsAsync(int courseId)
     {
-        var response = new CommonResponse<List<StudentInCourseDto>>();
+        CommonResponse<List<StudentInCourseDto>> response = new();
         try
         {
-            var students = await unitOfWork.Enrollment.GetProjectedAsync(
+            List<StudentInCourseDto> students = await unitOfWork.Enrollment.GetProjectedAsync(
                 e => e.Courseid == courseId,
                 selector: e => new StudentInCourseDto
                 {
@@ -180,7 +169,7 @@ public class CourseService : ICourseService
     }
     public async Task<CommonResponse<CourseResponseDto>> GetByIdAsync(int id)
     {
-        var response = new CommonResponse<CourseResponseDto>();
+        CommonResponse<CourseResponseDto> response = new();
         try
         {
             var course = await unitOfWork.Course.GetByIdAsync(id);
@@ -196,7 +185,8 @@ public class CourseService : ICourseService
         }
         catch (Exception ex)
         {
-            response.error_message = $"Failed to fetch course: {ex.Message}";
+            Console.WriteLine($"Error fetching course: {ex.Message}");
+            response.error_message = "Internal server error";
         }
         return response;
     }

@@ -19,6 +19,7 @@ public static class IServiceCollectionExtension
         services.AddScoped<IStudentService, StudentService>();
         services.AddScoped<ICommonService, CommonService>();
         services.AddSingleton<IFirebaseNotificationService, FirebaseNotificationService>();
+        services.AddSingleton<ChatGptService>();
         services.RegisterRequestValidatorDependencies();
         return services;
     }

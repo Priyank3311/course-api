@@ -21,13 +21,17 @@ public class FirebaseNotificationService : IFirebaseNotificationService
 
     public async Task SendToTokenAsync(string token, string title, string body)
     {
-        var message = new Message()
+        Message message = new()
         {
             Token = token,
             Notification = new Notification()
             {
                 Title = title,
                 Body = body
+            },
+            Data = new Dictionary<string, string>()
+            {
+                { "click_action", "/" }
             }
         };
 

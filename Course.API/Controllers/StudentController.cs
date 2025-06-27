@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Course.DataModel.Dtos.RequestDTOs;
+using Course.DataModel.Dtos.ResponseDTOs;
 using Course.Services.Student;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,14 +10,8 @@ namespace Course.API.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class StudentController : ControllerBase
+public class StudentController(IStudentService _studentService) : ControllerBase
 {
-    private readonly IStudentService _studentService;
-    public StudentController(IStudentService studentService)
-    {
-        _studentService = studentService;
-    }
-
     private int GetUserId() => int.Parse(User.FindFirst("user_id")?.Value!);
 
     [HttpGet("available-courses")]
@@ -34,7 +29,7 @@ public class StudentController : ControllerBase
     [HttpPost("enroll")]
     public async Task<IActionResult> Enroll(EnrollRequestDto dto)
     {
-        var response = await _studentService.EnrollAsync(GetUserId(), dto.CourseId);
+        CommonResponse<bool> response = await _studentService.EnrollAsync(GetUserId(), dto.CourseId);
 
         if (!string.IsNullOrEmpty(response.error_message))
             return BadRequest(response);
@@ -45,7 +40,7 @@ public class StudentController : ControllerBase
     [HttpPost("complete")]
     public async Task<IActionResult> Complete(EnrollRequestDto dto)
     {
-        var response = await _studentService.MarkCompletedAsync(GetUserId(), dto.CourseId);
+        CommonResponse<bool> response = await _studentService.MarkCompletedAsync(GetUserId(), dto.CourseId);
 
         if (!string.IsNullOrEmpty(response.error_message))
             return BadRequest(response);

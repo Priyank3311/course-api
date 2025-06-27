@@ -8,24 +8,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Course.Services.Student;
 
-public class StudentService : IStudentService
+public class StudentService(IMapper mapper, IUnitOfWork unitOfWork, IFirebaseNotificationService firebaseNotificationService) : IStudentService
 {
-    private readonly IMapper mapper;
-
-    private readonly IUnitOfWork unitOfWork;
-    private readonly IFirebaseNotificationService firebaseNotificationService;
-
-
-
-    public StudentService(IMapper _mapper, IUnitOfWork _unitOfWork, IFirebaseNotificationService _firebaseNotificationService)
-    {
-        mapper = _mapper;
-        unitOfWork = _unitOfWork;
-        firebaseNotificationService = _firebaseNotificationService;
-    }
     public async Task<CommonResponse<List<CourseResponseDto>>> GetAllCoursesAsync()
     {
-        var response = new CommonResponse<List<CourseResponseDto>>();
+        CommonResponse<List<CourseResponseDto>> response = new();
         try
         {
             var courses = await unitOfWork.Course.GetAllAsync();
@@ -41,10 +28,10 @@ public class StudentService : IStudentService
 
     public async Task<CommonResponse<List<EnrollmentResponseDto>>> GetMyCoursesAsync(int studentId)
     {
-        var response = new CommonResponse<List<EnrollmentResponseDto>>();
+        CommonResponse<List<EnrollmentResponseDto>> response = new();
         try
         {
-            var enrollments = await unitOfWork.Enrollment.GetProjectedAsync(
+            List<Enrollment> enrollments = await unitOfWork.Enrollment.GetProjectedAsync(
                 e => e.Userid == studentId,
                 selector: e => e,
                 include: q => q.Include(e => e.Course)
@@ -55,17 +42,18 @@ public class StudentService : IStudentService
         }
         catch (Exception ex)
         {
-            response.error_message = $"Failed to fetch your courses: {ex.Message}";
+            Console.WriteLine("Error fetching courses: " + ex.Message);
+            response.error_message = "Internal server error";
         }
         return response;
     }
 
     public async Task<CommonResponse<bool>> EnrollAsync(int studentId, int courseId)
     {
-        var response = new CommonResponse<bool>();
+        CommonResponse<bool> response = new();
         try
         {
-            var alreadyExists = (await unitOfWork.Enrollment
+            bool alreadyExists = (await unitOfWork.Enrollment
                 .FindAsync(e => e.Userid == studentId && e.Courseid == courseId))
                 .Any();
 
@@ -83,23 +71,22 @@ public class StudentService : IStudentService
                 Iscompleted = false
             });
 
-            User student = await unitOfWork.User.GetByIdAsync(studentId);
+            User? student = await unitOfWork.User.GetByIdAsync(studentId);
             var course = await unitOfWork.Course.GetByIdAsync(courseId);
-            var studentName = student?.Username ?? "Unknown Student";
-            var courseName = course?.Coursename ?? "Unknown Course";
+            string studentName = student?.Username ?? "Unknown Student";
+            string courseName = course?.Coursename ?? "Unknown Course";
 
-            var adminTokens = (await unitOfWork.DeviceToken
+            List<Devicetoken> adminTokens = (await unitOfWork.DeviceToken
                                 .FindAsync(a => a.User!.Role == "Admin"))
                                 .GroupBy(t => t.Token)
                                 .Select(g => g.First())
                                 .ToList();
 
 
-            foreach (var token in adminTokens)
+            foreach (Devicetoken token in adminTokens)
             {
                 try
                 {
-                    Console.WriteLine($"📤 Sending notification to token: {token.Token}");
                     await firebaseNotificationService.SendToTokenAsync(token.Token,
                         "New Enrollment",
                         $"{studentName} has enrolled in course name: {courseName}");
@@ -116,18 +103,19 @@ public class StudentService : IStudentService
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Error enrolling student: {ex.Message}");
             response.data = false;
-            response.error_message = $"Enrollment failed: {ex.Message}";
+            response.error_message = "Internal server error";
         }
         return response;
     }
 
     public async Task<CommonResponse<bool>> MarkCompletedAsync(int studentId, int courseId)
     {
-        var response = new CommonResponse<bool>();
+        CommonResponse<bool> response = new();
         try
         {
-            var enrollment = (await unitOfWork.Enrollment
+            Enrollment? enrollment = (await unitOfWork.Enrollment
                 .FindAsync(e => e.Userid == studentId && e.Courseid == courseId))
                 .FirstOrDefault();
 
@@ -146,15 +134,16 @@ public class StudentService : IStudentService
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Error marking course as completed: {ex.Message}");
             response.data = false;
-            response.error_message = $"Failed to mark as completed: {ex.Message}";
+            response.error_message = "Internal server error";
         }
         return response;
     }
 
     public async Task<CommonResponse<StudentProfileDto?>> GetProfileAsync(int studentId)
     {
-        var response = new CommonResponse<StudentProfileDto?>();
+        CommonResponse<StudentProfileDto?> response = new();
         try
         {
             var user = await unitOfWork.User.GetByIdAsync(studentId);
@@ -164,8 +153,8 @@ public class StudentService : IStudentService
                 return response;
             }
 
-            var enrollments = await unitOfWork.Enrollment.FindAsync(e => e.Userid == studentId);
-            var courseIds = enrollments.Select(e => e.Courseid).ToList();
+            IEnumerable<Enrollment> enrollments = await unitOfWork.Enrollment.FindAsync(e => e.Userid == studentId);
+            List<int> courseIds = enrollments.Select(e => e.Courseid).ToList();
             var courses = await unitOfWork.Course.FindAsync(c => courseIds.Contains(c.Id));
 
             response.data = new StudentProfileDto
@@ -178,7 +167,8 @@ public class StudentService : IStudentService
         }
         catch (Exception ex)
         {
-            response.error_message = $"Failed to get profile: {ex.Message}";
+            Console.WriteLine($"Error fetching student profile: {ex.Message}");
+            response.error_message = "Internal server error";
         }
         return response;
     }
